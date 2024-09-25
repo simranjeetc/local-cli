@@ -22,7 +22,7 @@ jobs:
 
     # Build the Docker image using the project version as a tag
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag local-cli:latest
+      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKERHUB_USERNAME }}/local-cli:latest
 
     # Push the image to Docker Hub
     - name: Push the image
