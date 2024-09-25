@@ -28,6 +28,9 @@ COPY --chown=devuser:devuser ./neovim-config /home/devuser/.config/nvim
 RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
     /home/devuser/.local/share/nvim/site/pack/packer/start/packer.nvim
 
+# Ensure the correct ownership of Neovim directories
+RUN chown -R devuser:devuser /home/devuser/.local/share/nvim/
+
 # Now switch to the non-root user
 USER devuser
 WORKDIR /home/devuser
