@@ -28,7 +28,11 @@ WORKDIR /home/devuser
 
 # Install lazy.nvim (plugin manager) and LazyVim
 RUN git clone https://github.com/folke/lazy.nvim.git ~/.config/nvim/lua/lazy.nvim
-RUN git clone https://github.com/LazyVim/starter ~/.config/nvim
+
+# Check if nvim directory exists, clone if it doesn't, or clean it if it does
+RUN if [ -d ~/.config/nvim ]; then \
+    rm -rf ~/.config/nvim; \
+  fi && git clone https://github.com/LazyVim/starter ~/.config/nvim
 
 # Copy custom plugins and settings (coding.lua and init.lua)
 COPY ./coding.lua /home/devuser/.config/nvim/lua/plugins/coding.lua
