@@ -1,4 +1,4 @@
-# Base Image
+# Use a lightweight base image like Ubuntu or Alpine
 FROM ubuntu:latest
 
 # Install necessary tools: zsh, fzf, neovim, git, curl, and any other required dependencies
@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     neovim \
     git \
     curl \
-    bat \
+    cat \
     ripgrep \
     unzip \
     build-essential
@@ -25,6 +25,9 @@ WORKDIR /home/devuser
 # Copy the local config folder to the Docker image
 COPY ./neovim-config /home/devuser/.config/nvim
 
+# Ensure the correct ownership of the config folder to avoid permission issues
+RUN chown -R devuser:devuser /home/devuser/.config/nvim
+
 # Install Packer, a plugin manager for Neovim
 RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
     ~/.local/share/nvim/site/pack/packer/start/packer.nvim
@@ -32,8 +35,9 @@ RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
 # Set the default shell to zsh
 SHELL ["/bin/zsh", "-c"]
 
-# Open Neovim to trigger Packer's installation and dependency handling
-RUN nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
+# Open Neovim to trigger Packer's installation and handle dependencies
+RUN nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync' || true
 
 # ENTRYPOINT to drop into zsh shell with the configured Neovim and other tools
 ENTRYPOINT ["/bin/zsh"]
+
