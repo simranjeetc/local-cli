@@ -45,4 +45,4 @@ SHELL ["/bin/zsh", "-c"]
 RUN nvim --headless "+Lazy sync" +qall
 
 # ENTRYPOINT to drop into zsh shell with the configured Neovim and other tools
-ENTRYPOINT ["/bin/zsh"]
+CMD ["/bin/zsh"]
