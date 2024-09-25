@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y \
     bat \
     ripgrep \
     unzip \
-    build-essential
+    build-essential \
+    lua5.4 \
+    luarocks
 
 # Set up oh-my-zsh or any other zsh setup you need
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
@@ -20,26 +22,23 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 # Create a non-root user, but do not switch to it yet
 RUN useradd -ms /bin/zsh devuser
 
-# Copy the local config folder to the Docker image and ensure the correct ownership
-# The --chown option ensures the correct permissions are set during the copy
-COPY --chown=devuser:devuser ./neovim-config /home/devuser/.config/nvim
-
-# Install Packer, a plugin manager for Neovim
-RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
-    /home/devuser/.local/share/nvim/site/pack/packer/start/packer.nvim
-
-# Ensure the correct ownership of Neovim directories and other local directories
-RUN chown -R devuser:devuser /home/devuser/.local
-
-# Now switch to the non-root user
+# Switch to non-root user and set up the environment
 USER devuser
 WORKDIR /home/devuser
 
-# Set the default shell to zsh
+# Install lazy.nvim (plugin manager) and LazyVim
+RUN git clone https://github.com/folke/lazy.nvim.git ~/.config/nvim/lua/lazy.nvim
+RUN git clone https://github.com/LazyVim/starter ~/.config/nvim
+
+# Copy custom plugins and settings (coding.lua and init.lua)
+COPY ./coding.lua /home/devuser/.config/nvim/lua/plugins/coding.lua
+COPY ./init.lua /home/devuser/.config/nvim/lua/plugins/init.lua
+
+# Set default shell to zsh
 SHELL ["/bin/zsh", "-c"]
 
-# Open Neovim to trigger Packer's installation and handle dependencies
-RUN nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync' || true
+# Install Neovim plugins
+RUN nvim --headless "+Lazy sync" +qall
 
 # ENTRYPOINT to drop into zsh shell with the configured Neovim and other tools
 ENTRYPOINT ["/bin/zsh"]
