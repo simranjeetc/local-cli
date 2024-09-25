@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     neovim \
     git \
     curl \
-    cat \
+    bat \
     ripgrep \
     unzip \
     build-essential
