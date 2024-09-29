@@ -24,6 +24,16 @@ function check_image {
     fi
 }
 
+# Determine if we're running on Windows
+IS_WINDOWS=false
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    IS_WINDOWS=true
+fi
+
+# Get the UID and GID of the current host user (Unix-like systems only)
+HOST_UID=$(id -u)
+HOST_GID=$(id -g)
+
 # Parse options
 while getopts "hu" opt; do
     case ${opt} in
@@ -49,7 +59,33 @@ check_image
 
 # Check if any command is passed, otherwise run the shell
 if [ -z "$1" ]; then
-    docker run --rm -it -v $(pwd):/workspace -w /workspace $IMAGE_NAME zsh
+    if [ "$IS_WINDOWS" = true ]; then
+        # Run Docker without --user flag on Windows
+        docker run --rm -it \
+            -v $(pwd):/workspace \
+            -w /workspace \
+            $IMAGE_NAME zsh
+    else
+        # Run Docker with --user flag on Unix-like systems
+        docker run --rm -it \
+            --user $HOST_UID:$HOST_GID \
+            -v $(pwd):/workspace \
+            -w /workspace \
+            $IMAGE_NAME zsh
+    fi
 else
-    docker run --rm -it -v $(pwd):/workspace -w /workspace $IMAGE_NAME zsh -c "$*"
+    if [ "$IS_WINDOWS" = true ]; then
+        # Run Docker without --user flag on Windows
+        docker run --rm -it \
+            -v $(pwd):/workspace \
+            -w /workspace \
+            $IMAGE_NAME zsh -c "$*"
+    else
+        # Run Docker with --user flag on Unix-like systems
+        docker run --rm -it \
+            --user $HOST_UID:$HOST_GID \
+            -v $(pwd):/workspace \
+            -w /workspace \
+            $IMAGE_NAME zsh -c "$*"
+    fi
 fi
